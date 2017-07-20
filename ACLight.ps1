@@ -140,10 +140,10 @@ function Start-domainACLsAnalysis {
 
     #Archive any existing CSV file
     if (Test-Path $exportCsvFile) {
-        $exportCsvFileName = $exportCsvFile.Replace("$resultsPath\","")
-        $newname = Join-Path $resultsPath "$((Get-Date).ToString('yyyy MM dd hhmmtt'))-$exportCsvFileName"
-        Write-Verbose "Found existing file [ $exportCsvFileName ] - Archiving it to [ $newname ]"
-        Copy-Item $exportCsvFile $newname
+        $exportCsvFileNameWithPathStripped = $exportCsvFile.Replace("$resultsPath\","")
+        $archiveFileName = Join-Path $resultsPath "$((Get-Date).ToString('yyyy MM dd hhmmtt'))-$exportCsvFileNameWithPathStripped"
+        Write-Verbose "Found existing file [ $exportCsvFileName ] - Archiving it to [ $archiveFileName ]"
+        Copy-Item $exportCsvFile $archiveFileName
         Remove-Item $exportCsvFile
     }
     
