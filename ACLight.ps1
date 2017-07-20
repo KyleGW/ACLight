@@ -72,15 +72,27 @@ THE RESULTS FILES:
 ######################################################################
 
 # Create the results folder
-$resultsPath = $PSScriptRoot + "\Results"
-if (Test-Path $resultsPath)
+#handle being run both from command line and from ISE (where PSScriptRoot is blank)
+
+if(-not $PSScriptRoot)
 {
-    write-verbose "The results folder was already exists"
+    $resultsPath = Join-Path (get-location).Path "Results"
 }
 else
 {
+    $resultsPath = Join-Path $PSScriptRoot "Results"
+}
+if (Test-Path $resultsPath)
+{
+    Write-Verbose "The results folder [$resultsPath] exists"
+}
+else
+{
+    Write-Verbose "The results folder [$resultsPath] does not exist, creating folder."
     New-Item -ItemType directory -Path $resultsPath
 }
+
+Write-host "Logging/exporting results files to [$resultsPath]"
 
 # Function for advanced ACLs analysis in a specified domain
 function Start-domainACLsAnalysis {
@@ -117,15 +129,21 @@ function Start-domainACLsAnalysis {
         $DomainController,
                 
         [String]
-        $exportCsvFile = "C:\scanACLsResults.csv",
+        $exportCsvFile = "scanACLsResults.csv",
 
         [ValidateRange(1,10000)] 
         [Int]
         $PageSize = 200
     )
 
-    #clean the csv output file
+    Write-Verbose "Entered Function Start-domainACLsAnalysis"
+
+    #Archive any existing CSV file
     if (Test-Path $exportCsvFile) {
+        $exportCsvFileName = $exportCsvFile.Replace("$resultsPath\","")
+        $newname = Join-Path $resultsPath "$((Get-Date).ToString('yyyy MM dd hhmmtt'))-$exportCsvFileName"
+        Write-Verbose "Found existing file [ $exportCsvFileName ] - Archiving it to [ $newname ]"
+        Copy-Item $exportCsvFile $newname
         Remove-Item $exportCsvFile
     }
     
@@ -876,8 +894,6 @@ function Get-NetUser {
     }
 }
 
-
-
 function Get-NetForest {
 <#
     .SYNOPSIS
@@ -926,7 +942,6 @@ function Get-NetForest {
         }
     }
 }
-
 
 function Get-NetForestDomain {
 <#
@@ -982,7 +997,6 @@ function Get-NetForestDomain {
     }
 }
 
-
 function Get-NetDomain {
 <#
     .SYNOPSIS
@@ -1025,7 +1039,6 @@ function Get-NetDomain {
         }
     }
 }
-
 
 function Get-NetGroup {
 <#
@@ -1202,7 +1215,6 @@ function Get-NetGroup {
         }
     }
 }
-
 
 function Get-NetComputer {
 <#
@@ -1400,7 +1412,6 @@ function Get-NetComputer {
     }
 }
 
-
 function Get-DomainSID {
 <#
     .SYNOPSIS
@@ -1433,9 +1444,6 @@ function Get-DomainSID {
         $Parts[0..($Parts.length -2)] -join "-"
     }
 }
-
-
-
 
 function Convert-SidToName {
 <#
@@ -1540,7 +1548,6 @@ function Convert-SidToName {
     }
 }
 
-
 function Convert-NameToSid {
 <#
     .SYNOPSIS
@@ -1590,7 +1597,6 @@ function Convert-NameToSid {
         }
     }
 }
-
 
 function Convert-LDAPProperty {
     # helper to convert specific LDAP property result fields
@@ -1648,9 +1654,6 @@ function Convert-LDAPProperty {
 
     New-Object -TypeName PSObject -Property $ObjectProperties
 }
-
-
-
 
 function Get-NetGroupMember {
 <#
@@ -1945,7 +1948,6 @@ function Get-NetGroupMember {
     }
 }
 
-
 function Get-DomainSearcher {
 <#
     .SYNOPSIS
@@ -2059,7 +2061,6 @@ function Get-DomainSearcher {
     $Searcher
 }
 
-
 function Get-NetOU {
 <#
     .SYNOPSIS
@@ -2166,7 +2167,6 @@ function Get-NetOU {
     }
 }
 
-
 function Get-NetForest {
 <#
     .SYNOPSIS
@@ -2215,7 +2215,6 @@ function Get-NetForest {
         }
     }
 }
-
 
 function Get-ADObject {
 <#
@@ -2354,8 +2353,6 @@ function Get-ADObject {
         }
     }
 }
-
-
 
 function Get-GUIDMap {
 <#
@@ -2647,7 +2644,6 @@ function Get-ObjectAcl {
         }
     }
 }
-
 
 function Invoke-ACLScanner {
 <#
